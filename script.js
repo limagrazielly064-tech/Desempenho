@@ -92,7 +92,19 @@ function renderizarAvaliacoes() {
     tbody.innerHTML = '';
 
     avaliacoes.forEach((av, index) => {
+        // 1. FILTRO DA BARRA DE PESQUISA
         if (!av.nome.toLowerCase().includes(termo)) return;
+
+        // --- NOVO: FILTRO DE PRIVACIDADE ---
+        // Se o usuário NÃO for admin...
+        if (sessao.tipo !== 'admin') {
+            // ...e o nome na avaliação for diferente do nome do usuário logado...
+            // Usamos toLowerCase() e trim() para evitar erros com maiúsculas ou espaços
+            if (av.nome.toLowerCase().trim() !== sessao.nome.toLowerCase().trim()) {
+                return; // Pula esta linha (não mostra na tela)
+            }
+        }
+        // -----------------------------------
 
         // Regra de Cores
         let corTexto = "black";
@@ -101,6 +113,34 @@ function renderizarAvaliacoes() {
         if (av.statusMeta === 'nao_atingida') { textoAnalise = "Crítico"; corTexto = "red"; }
         else if (av.nota >= 8 && av.statusMeta === 'atingida') { textoAnalise = "Excelente"; corTexto = "green"; }
         else if (av.nota < 6) { textoAnalise = "Atenção"; corTexto = "orange"; }
+
+        // Botões Admin
+        let btns = `<button class="btn-acao" style="background:#3498db" onclick="alert('${av.feedback}')">Ver Feedback</button>`;
+        
+        if(sessao.tipo === 'admin') {
+            btns += `
+                <button class="btn-acao btn-edit" onclick="editarAvaliacao(${index})">✏️</button>
+                <button class="btn-acao btn-del" onclick="excluirAvaliacao(${index})">🗑️</button>
+            `;
+        }
+
+        const linha = `
+            <tr>
+                <td><strong>${av.nome}</strong><br><small>${av.cargo}</small></td>
+                <td>${av.meta} <br> <span class="badge ${av.statusMeta === 'atingida' ? 'bg-verde' : (av.statusMeta === 'parcial' ? 'bg-amarelo' : 'bg-vermelho')}">${av.statusMeta}</span></td>
+                <td>${av.nota}</td>
+                <td style="color:${corTexto}; font-weight:bold">${textoAnalise}</td>
+                <td>${btns}</td>
+            </tr>
+        `;
+        tbody.innerHTML += linha;
+    });
+    
+    // Aviso caso a tabela fique vazia para o funcionário
+    if (tbody.innerHTML === '') {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhuma avaliação encontrada para você.</td></tr>';
+    }
+}
 
         // Botões Admin (Sem botão de histórico)
         let btns = `<button class="btn-acao" style="background:#3498db" onclick="alert('${av.feedback}')">Ver Feedback</button>`;
@@ -122,8 +162,7 @@ function renderizarAvaliacoes() {
             </tr>
         `;
         tbody.innerHTML += linha;
-    });
-}
+    ;
 
 function editarAvaliacao(index) {
     editandoIndex = index;
