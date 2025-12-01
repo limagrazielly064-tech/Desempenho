@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desempenho Funcionários</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="login-page">
+
+    <div class="login-container">
+        <div class="login-header">
+            <img src="./img/uninassau.png" alt="Logo Uninassau" class="logo-login">
+            
+            <h1>Seja Bem-Vindo</h1>
+            <p id="titulo-login">Insira suas credenciais</p>
+        </div>
+
+        <form id="form-login">
+            <div class="campo">
+                <label>E-mail</label>
+                <input type="email" id="email-login" required placeholder="seu@email.com">
+            </div>
+            <div class="campo">
+                <label>Senha</label>
+                <input type="password" id="senha-login" required>
+            </div>
+
+            <div class="checkbox-container">
+                <input type="checkbox" id="manter-conectado"> 
+                <label for="manter-conectado">Manter conectado</label>
+            </div>
+
+            <button type="submit">Entrar</button>
+            
+            <div class="footer-login">
+                <a href="#" onclick="alternarFormulario('alterar')">Alterar minha senha</a>
+            </div>
+        </form>
+
+        <form id="form-alterar" style="display: none;">
+            <div class="campo">
+                <label>E-mail Cadastrado</label>
+                <input type="email" id="alt-email" required>
+            </div>
+            <div class="campo">
+                <label>Senha Atual (Antiga)</label>
+                <input type="password" id="alt-senha-antiga" required placeholder="Para sua segurança">
+            </div>
+            <div class="campo">
+                <label>Nova Senha</label>
+                <input type="password" id="alt-senha-nova" required minlength="4">
+            </div>
+            <button type="submit" style="background-color: #e67e22;">Salvar Nova Senha</button>
+
+            <div class="footer-login">
+                <a href="#" onclick="alternarFormulario('login')">Voltar para Login</a>
+            </div>
+        </form>
+
+        <p id="msg-erro" style="color: #e74c3c; text-align: center; margin-top: 15px; display: none; font-weight: bold;"></p>
+        <p id="msg-sucesso" style="color: #27ae60; text-align: center; margin-top: 15px; display: none; font-weight: bold;"></p>
+    </div>
+
+    <script src="login.js"></script>
+</body>
+</html>

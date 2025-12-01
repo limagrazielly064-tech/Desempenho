@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo RH</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <img src="./img/uninassau.png" alt="Logo" class="logo-dashboard">
+            
+            <div>
+                <h1 style="font-size: 1.5rem; margin: 0;">Sistema de Performance</h1>
+                <p id="welcome-msg" style="font-size: 0.8rem; opacity: 0.8; margin: 0;">Carregando...</p>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="logout()" class="btn-logout">Sair</button>
+        </div>
+    </header>
+
+    <main class="container">
+        
+        <nav class="menu-tabs">
+            <button class="tab-btn active" onclick="mudarAba('avaliacoes')">📊 Avaliações de Desempenho</button>
+            <button class="tab-btn" id="btn-aba-usuarios" onclick="mudarAba('usuarios')">👥 Gestão de Usuários</button>
+        </nav>
+
+        <div id="view-avaliacoes" class="view-section">
+            
+            <section class="card" id="card-form-avaliacao">
+                <h2 id="titulo-form-avaliacao">Nova Avaliação</h2>
+                <form id="form-avaliacao">
+                    <input type="hidden" id="index-edicao-avaliacao" value="">
+
+                    <div class="row-dupla">
+                        <div class="campo">
+                            <label>Nome do Colaborador</label>
+                            <input type="text" id="av-nome" required>
+                        </div>
+                        <div class="campo">
+                            <label>Cargo</label>
+                            <input type="text" id="av-cargo" required>
+                        </div>
+                    </div>
+
+                    <div class="row-dupla">
+                        <div class="campo">
+                            <label>Data</label>
+                            <input type="date" id="av-data" required>
+                        </div>
+                        <div class="campo">
+                            <label>Nota (0-10)</label>
+                            <input type="number" id="av-nota" min="0" max="10" step="0.1" required>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label>Meta Principal</label>
+                        <input type="text" id="av-meta" required>
+                    </div>
+
+                    <div class="campo">
+                        <label>Status da Meta</label>
+                        <select id="av-statusMeta" required>
+                            <option value="atingida">✅ Meta Atingida</option>
+                            <option value="parcial">⚠️ Parcial</option>
+                            <option value="nao_atingida">❌ Não Atingida</option>
+                        </select>
+                    </div>
+
+                    <div class="campo">
+                        <label>Feedback</label>
+                        <textarea id="av-feedback"></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" id="btn-salvar-av">Salvar Avaliação</button>
+                        <button type="button" id="btn-cancelar-av" onclick="cancelarEdicao()" style="background:#95a5a6; display:none;">Cancelar</button>
+                    </div>
+                </form>
+            </section>
+
+            <div class="search-bar">
+                <input type="text" id="busca-avaliacao" placeholder="🔍 Pesquisar funcionário por nome..." onkeyup="renderizarAvaliacoes()">
+            </div>
+
+            <div class="card">
+                <h2>Histórico Geral</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Colaborador</th>
+                            <th>Meta / Resultado</th>
+                            <th>Nota</th>
+                            <th>Análise</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-avaliacoes">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-usuarios" class="view-section" style="display: none;">
+            
+            <section class="card">
+                <h2>Cadastrar Novo Usuário</h2>
+                <form id="form-usuario">
+                    <div class="row-dupla">
+                        <div class="campo">
+                            <label>Nome</label>
+                            <input type="text" id="usr-nome" required placeholder="Ex: João Silva">
+                        </div>
+                        <div class="campo">
+                            <label>E-mail de Login</label>
+                            <input type="email" id="usr-email" required placeholder="joao@empresa.com">
+                        </div>
+                    </div>
+                    <div class="row-dupla">
+                        <div class="campo">
+                            <label>Senha Inicial</label>
+                            <input type="text" id="usr-senha" required placeholder="123456">
+                        </div>
+                        <div class="campo">
+                            <label>Permissão</label>
+                            <select id="usr-tipo">
+                                <option value="comum">Visualizador (Comum)</option>
+                                <option value="admin">Administrador</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" style="background: #8e44ad;">Criar Acesso</button>
+                </form>
+            </section>
+
+            <div class="card" style="margin-top: 20px;">
+                <h2>Usuários Cadastrados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nome / E-mail</th>
+                            <th>Tipo</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-usuarios">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
