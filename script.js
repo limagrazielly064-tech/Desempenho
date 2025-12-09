@@ -1,5 +1,5 @@
 // ============================================================
-// ARQUIVO: script.js (VERSÃO FINAL)
+// ARQUIVO: script.js (VERSÃO FINAL LIMPA)
 // ============================================================
 
 // --- 1. GESTÃO DE SESSÃO (BLINDADA) ---
@@ -18,19 +18,19 @@ try {
 
 } catch (erro) {
     console.warn("Redirecionando para login:", erro.message);
-    // Só redireciona se não estivermos já na tela de login para evitar loop
+    // Só redireciona se não estivermos já na tela de login
     if (!window.location.href.includes("login.html")) {
         window.location.href = "login.html";
     }
 }
 
-// Atualiza a mensagem de Boas Vindas (Remove o "Carregando...")
+// Atualiza a mensagem de Boas Vindas
 const welcomeMsg = document.getElementById('welcome-msg');
 if (welcomeMsg) {
     if (sessao) {
         welcomeMsg.innerText = `Olá, ${sessao.nome} (${sessao.tipo === 'admin' ? 'Administrador' : 'Visitante'})`;
     } else {
-        welcomeMsg.innerText = "Redirecionando...";
+        welcomeMsg.innerText = "Carregando...";
     }
 }
 
@@ -58,8 +58,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 3. NAVEGAÇÃO DE ABAS ---
 function mudarAba(aba) {
     // Esconde todas
-    document.getElementById('view-avaliacoes').style.display = 'none';
-    document.getElementById('view-usuarios').style.display = 'none';
+    const viewAv = document.getElementById('view-avaliacoes');
+    const viewUsr = document.getElementById('view-usuarios');
+    
+    if(viewAv) viewAv.style.display = 'none';
+    if(viewUsr) viewUsr.style.display = 'none';
     
     // Tira classe ativa dos botões
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -198,27 +201,32 @@ function excluirAvaliacao(index) {
 }
 
 // ============================================================
-// --- 5. GESTÃO DE USUÁRIOS ---
+// --- 5. GESTÃO DE USUÁRIOS (SEM DUPLICIDADE) ---
 // ============================================================
 
 function salvarNovoUsuario() {
+    // 1. Captura os dados
     const nome = document.getElementById('usr-nome').value;
     const email = document.getElementById('usr-email').value;
     const senha = document.getElementById('usr-senha').value;
     const tipo = document.getElementById('usr-tipo').value;
 
+    // 2. Validação simples
     if (!nome || !email || !senha) {
         alert("Por favor, preencha todos os campos!");
         return;
     }
 
+    // 3. Pega a lista do banco
     let listaUsuarios = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
 
+    // 4. Verifica duplicidade
     if(listaUsuarios.find(u => u.email === email)) {
         alert("ERRO: Este e-mail já está cadastrado!");
         return;
     }
 
+    // 5. Salva
     const novoUsuario = {
         nome: nome,
         email: email,
@@ -230,6 +238,7 @@ function salvarNovoUsuario() {
     listaUsuarios.push(novoUsuario);
     localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaUsuarios));
 
+    // 6. Limpa e Atualiza
     document.getElementById('form-usuario').reset();
     renderizarUsuarios();
     
