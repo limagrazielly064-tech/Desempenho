@@ -1,3 +1,7 @@
+// ============================================================
+// ARQUIVO: script.js (VERSÃO FINAL CORRIGIDA)
+// ============================================================
+
 // --- 1. GESTÃO DE SESSÃO (BLINDADA) ---
 let sessao = null;
 
@@ -95,16 +99,12 @@ function renderizarAvaliacoes() {
         // 1. FILTRO DA BARRA DE PESQUISA
         if (!av.nome.toLowerCase().includes(termo)) return;
 
-        // --- NOVO: FILTRO DE PRIVACIDADE ---
-        // Se o usuário NÃO for admin...
+        // 2. FILTRO DE PRIVACIDADE
         if (sessao.tipo !== 'admin') {
-            // ...e o nome na avaliação for diferente do nome do usuário logado...
-            // Usamos toLowerCase() e trim() para evitar erros com maiúsculas ou espaços
             if (av.nome.toLowerCase().trim() !== sessao.nome.toLowerCase().trim()) {
-                return; // Pula esta linha (não mostra na tela)
+                return; 
             }
         }
-        // -----------------------------------
 
         // Regra de Cores
         let corTexto = "black";
@@ -136,33 +136,10 @@ function renderizarAvaliacoes() {
         tbody.innerHTML += linha;
     });
     
-    // Aviso caso a tabela fique vazia para o funcionário
     if (tbody.innerHTML === '') {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhuma avaliação encontrada para você.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhuma avaliação encontrada.</td></tr>';
     }
 }
-
-        // Botões Admin (Sem botão de histórico)
-        let btns = `<button class="btn-acao" style="background:#3498db" onclick="alert('${av.feedback}')">Ver Feedback</button>`;
-        
-        if(sessao.tipo === 'admin') {
-            btns += `
-                <button class="btn-acao btn-edit" onclick="editarAvaliacao(${index})">✏️</button>
-                <button class="btn-acao btn-del" onclick="excluirAvaliacao(${index})">🗑️</button>
-            `;
-        }
-
-        const linha = `
-            <tr>
-                <td><strong>${av.nome}</strong><br><small>${av.cargo}</small></td>
-                <td>${av.meta} <br> <span class="badge ${av.statusMeta === 'atingida' ? 'bg-verde' : (av.statusMeta === 'parcial' ? 'bg-amarelo' : 'bg-vermelho')}">${av.statusMeta}</span></td>
-                <td>${av.nota}</td>
-                <td style="color:${corTexto}; font-weight:bold">${textoAnalise}</td>
-                <td>${btns}</td>
-            </tr>
-        `;
-        tbody.innerHTML += linha;
-    ;
 
 function editarAvaliacao(index) {
     editandoIndex = index;
@@ -197,34 +174,50 @@ function excluirAvaliacao(index) {
     }
 }
 
-// --- 5. GESTÃO DE USUÁRIOS (Admin) ---
-const formUsr = document.getElementById('form-usuario');
-if(formUsr) {
-    formUsr.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const novoUser = {
-            nome: document.getElementById('usr-nome').value,
-            email: document.getElementById('usr-email').value,
-            senha: document.getElementById('usr-senha').value,
-            tipo: document.getElementById('usr-tipo').value,
-            bloqueado: false
-        };
+// ============================================================
+// --- 5. GESTÃO DE USUÁRIOS (FUNÇÃO CORRIGIDA) ---
+// ============================================================
 
-        let listaAtualizada = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
-        
-        if(listaAtualizada.find(u => u.email === novoUser.email)) {
-            alert("ERRO: E-mail já cadastrado!");
-            return;
-        }
+// Esta função é chamada diretamente pelo onclick do botão no HTML
+function salvarNovoUsuario() {
+    // 1. Captura os dados
+    const nome = document.getElementById('usr-nome').value;
+    const email = document.getElementById('usr-email').value;
+    const senha = document.getElementById('usr-senha').value;
+    const tipo = document.getElementById('usr-tipo').value;
 
-        listaAtualizada.push(novoUser);
-        localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaAtualizada));
-        
-        formUsr.reset();
-        renderizarUsuarios();
-        alert("Usuário criado com sucesso!");
-    });
+    // 2. Validação simples
+    if (!nome || !email || !senha) {
+        alert("Por favor, preencha todos os campos!");
+        return;
+    }
+
+    // 3. Pega a lista do banco
+    let listaUsuarios = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
+
+    // 4. Verifica duplicidade
+    if(listaUsuarios.find(u => u.email === email)) {
+        alert("ERRO: Este e-mail já está cadastrado!");
+        return;
+    }
+
+    // 5. Salva
+    const novoUsuario = {
+        nome: nome,
+        email: email,
+        senha: senha,
+        tipo: tipo,
+        bloqueado: false
+    };
+
+    listaUsuarios.push(novoUsuario);
+    localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaUsuarios));
+
+    // 6. Limpa e Atualiza
+    document.getElementById('form-usuario').reset();
+    renderizarUsuarios();
+    
+    alert("Usuário criado com sucesso!");
 }
 
 function renderizarUsuarios() {
@@ -280,51 +273,4 @@ function logout() {
     sessionStorage.removeItem("sessaoUsuario");
     localStorage.removeItem("sessaoUsuario");
     window.location.href = "login.html";
-
-} 
-// ============================================================
-// LÓGICA DE CADASTRO DE USUÁRIOS (Cole isso no final do script.js)
-// ============================================================
-
-const formUsr = document.getElementById('form-usuario');
-
-// 1. Verifica se o formulário existe na tela antes de tentar usar
-if (formUsr) {
-    formUsr.addEventListener('submit', function(e) {
-        e.preventDefault(); // IMPEDE A PÁGINA DE RECARREGAR
-        
-        // 2. Captura os dados digitados
-        const nome = document.getElementById('usr-nome').value;
-        const email = document.getElementById('usr-email').value;
-        const senha = document.getElementById('usr-senha').value;
-        const tipo = document.getElementById('usr-tipo').value;
-
-        // 3. Pega a lista atual do banco de dados
-        let listaUsuarios = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
-        
-        // 4. Verifica se o e-mail já existe (para não duplicar)
-        const emailExiste = listaUsuarios.find(u => u.email === email);
-        if (emailExiste) {
-            alert("ERRO: Este e-mail já possui cadastro!");
-            return; // Para o código aqui
-        }
-
-        // 5. Cria o novo objeto de usuário
-        const novoUsuario = {
-            nome: nome,
-            email: email,
-            senha: senha,
-            tipo: tipo,
-            bloqueado: false
-        };
-
-        // 6. Salva e Atualiza
-        listaUsuarios.push(novoUsuario);
-        localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaUsuarios));
-        
-        // 7. Limpa o formulário e avisa
-        formUsr.reset();
-        renderizarUsuarios(); // Desenha a tabela novamente
-        alert("Usuário criado com sucesso!");
-    });
 }
