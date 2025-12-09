@@ -1,5 +1,5 @@
 // ============================================================
-// ARQUIVO: script.js (VERSÃO FINAL CORRIGIDA)
+// ARQUIVO: script.js (VERSÃO FINAL)
 // ============================================================
 
 // --- 1. GESTÃO DE SESSÃO (BLINDADA) ---
@@ -7,20 +7,31 @@ let sessao = null;
 
 try {
     let jsonSessao = sessionStorage.getItem("sessaoUsuario") || localStorage.getItem("sessaoUsuario");
+    
+    // Se não tiver sessão, lança erro para cair no catch
     if (!jsonSessao) throw new Error("Nenhuma sessão encontrada");
+    
     sessao = JSON.parse(jsonSessao);
+    
+    // Se o objeto existe mas logado é falso
     if (!sessao.logado) throw new Error("Usuário não está logado");
+
 } catch (erro) {
     console.warn("Redirecionando para login:", erro.message);
+    // Só redireciona se não estivermos já na tela de login para evitar loop
     if (!window.location.href.includes("login.html")) {
         window.location.href = "login.html";
     }
 }
 
-// Exibe nome do usuário
+// Atualiza a mensagem de Boas Vindas (Remove o "Carregando...")
 const welcomeMsg = document.getElementById('welcome-msg');
-if (welcomeMsg && sessao) {
-    welcomeMsg.innerText = `Olá, ${sessao.nome} (${sessao.tipo === 'admin' ? 'Administrador' : 'Visitante'})`;
+if (welcomeMsg) {
+    if (sessao) {
+        welcomeMsg.innerText = `Olá, ${sessao.nome} (${sessao.tipo === 'admin' ? 'Administrador' : 'Visitante'})`;
+    } else {
+        welcomeMsg.innerText = "Redirecionando...";
+    }
 }
 
 // Esconde botão de admin se for visitante
@@ -35,25 +46,35 @@ let editandoIndex = null;
 
 // Inicialização
 document.addEventListener('DOMContentLoaded', () => {
-    renderizarAvaliacoes();
-    if (sessao && sessao.tipo === 'admin') {
-        renderizarUsuarios();
+    // Só tenta renderizar se tivermos sessão válida
+    if (sessao) {
+        renderizarAvaliacoes();
+        if (sessao.tipo === 'admin') {
+            renderizarUsuarios();
+        }
     }
 });
 
 // --- 3. NAVEGAÇÃO DE ABAS ---
 function mudarAba(aba) {
+    // Esconde todas
     document.getElementById('view-avaliacoes').style.display = 'none';
     document.getElementById('view-usuarios').style.display = 'none';
     
+    // Tira classe ativa dos botões
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     
-    document.getElementById(`view-${aba}`).style.display = 'block';
+    // Mostra a escolhida
+    const abaEscolhida = document.getElementById(`view-${aba}`);
+    if (abaEscolhida) abaEscolhida.style.display = 'block';
     
+    // Ativa o botão visualmente
     if(aba === 'avaliacoes') {
-        document.querySelector('.tab-btn:first-child').classList.add('active');
+        const btn1 = document.querySelector('.tab-btn:first-child');
+        if(btn1) btn1.classList.add('active');
     } else {
-        document.getElementById('btn-aba-usuarios').classList.add('active');
+        const btn2 = document.getElementById('btn-aba-usuarios');
+        if(btn2) btn2.classList.add('active');
     }
 }
 
@@ -92,15 +113,17 @@ function renderizarAvaliacoes() {
     const tbody = document.getElementById('tabela-avaliacoes');
     if(!tbody) return;
     
-    const termo = document.getElementById('busca-avaliacao').value.toLowerCase();
+    const inputBusca = document.getElementById('busca-avaliacao');
+    const termo = inputBusca ? inputBusca.value.toLowerCase() : "";
+    
     tbody.innerHTML = '';
 
     avaliacoes.forEach((av, index) => {
-        // 1. FILTRO DA BARRA DE PESQUISA
-        if (!av.nome.toLowerCase().includes(termo)) return;
+        // Filtro de Busca
+        if (av.nome && !av.nome.toLowerCase().includes(termo)) return;
 
-        // 2. FILTRO DE PRIVACIDADE
-        if (sessao.tipo !== 'admin') {
+        // Filtro de Privacidade (Se não for admin, só vê o próprio nome)
+        if (sessao && sessao.tipo !== 'admin') {
             if (av.nome.toLowerCase().trim() !== sessao.nome.toLowerCase().trim()) {
                 return; 
             }
@@ -114,10 +137,10 @@ function renderizarAvaliacoes() {
         else if (av.nota >= 8 && av.statusMeta === 'atingida') { textoAnalise = "Excelente"; corTexto = "green"; }
         else if (av.nota < 6) { textoAnalise = "Atenção"; corTexto = "orange"; }
 
-        // Botões Admin
+        // Botões
         let btns = `<button class="btn-acao" style="background:#3498db" onclick="alert('${av.feedback}')">Ver Feedback</button>`;
         
-        if(sessao.tipo === 'admin') {
+        if(sessao && sessao.tipo === 'admin') {
             btns += `
                 <button class="btn-acao btn-edit" onclick="editarAvaliacao(${index})">✏️</button>
                 <button class="btn-acao btn-del" onclick="excluirAvaliacao(${index})">🗑️</button>
@@ -175,33 +198,27 @@ function excluirAvaliacao(index) {
 }
 
 // ============================================================
-// --- 5. GESTÃO DE USUÁRIOS (FUNÇÃO CORRIGIDA) ---
+// --- 5. GESTÃO DE USUÁRIOS ---
 // ============================================================
 
-// Esta função é chamada diretamente pelo onclick do botão no HTML
 function salvarNovoUsuario() {
-    // 1. Captura os dados
     const nome = document.getElementById('usr-nome').value;
     const email = document.getElementById('usr-email').value;
     const senha = document.getElementById('usr-senha').value;
     const tipo = document.getElementById('usr-tipo').value;
 
-    // 2. Validação simples
     if (!nome || !email || !senha) {
         alert("Por favor, preencha todos os campos!");
         return;
     }
 
-    // 3. Pega a lista do banco
     let listaUsuarios = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
 
-    // 4. Verifica duplicidade
     if(listaUsuarios.find(u => u.email === email)) {
         alert("ERRO: Este e-mail já está cadastrado!");
         return;
     }
 
-    // 5. Salva
     const novoUsuario = {
         nome: nome,
         email: email,
@@ -213,7 +230,6 @@ function salvarNovoUsuario() {
     listaUsuarios.push(novoUsuario);
     localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaUsuarios));
 
-    // 6. Limpa e Atualiza
     document.getElementById('form-usuario').reset();
     renderizarUsuarios();
     
