@@ -280,4 +280,51 @@ function logout() {
     sessionStorage.removeItem("sessaoUsuario");
     localStorage.removeItem("sessaoUsuario");
     window.location.href = "login.html";
+
+} 
+// ============================================================
+// LÓGICA DE CADASTRO DE USUÁRIOS (Cole isso no final do script.js)
+// ============================================================
+
+const formUsr = document.getElementById('form-usuario');
+
+// 1. Verifica se o formulário existe na tela antes de tentar usar
+if (formUsr) {
+    formUsr.addEventListener('submit', function(e) {
+        e.preventDefault(); // IMPEDE A PÁGINA DE RECARREGAR
+        
+        // 2. Captura os dados digitados
+        const nome = document.getElementById('usr-nome').value;
+        const email = document.getElementById('usr-email').value;
+        const senha = document.getElementById('usr-senha').value;
+        const tipo = document.getElementById('usr-tipo').value;
+
+        // 3. Pega a lista atual do banco de dados
+        let listaUsuarios = JSON.parse(localStorage.getItem('sistemaRH_usuarios')) || [];
+        
+        // 4. Verifica se o e-mail já existe (para não duplicar)
+        const emailExiste = listaUsuarios.find(u => u.email === email);
+        if (emailExiste) {
+            alert("ERRO: Este e-mail já possui cadastro!");
+            return; // Para o código aqui
+        }
+
+        // 5. Cria o novo objeto de usuário
+        const novoUsuario = {
+            nome: nome,
+            email: email,
+            senha: senha,
+            tipo: tipo,
+            bloqueado: false
+        };
+
+        // 6. Salva e Atualiza
+        listaUsuarios.push(novoUsuario);
+        localStorage.setItem('sistemaRH_usuarios', JSON.stringify(listaUsuarios));
+        
+        // 7. Limpa o formulário e avisa
+        formUsr.reset();
+        renderizarUsuarios(); // Desenha a tabela novamente
+        alert("Usuário criado com sucesso!");
+    });
 }
